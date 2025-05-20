@@ -1,5 +1,6 @@
 import request from '@/api/request'
 import type { bodySnap } from '@/types/auth.types'
+import type { formVerif, responseAccessToken, responseSign, responseTrx } from '@/types/verif.types'
 
 // Generate Public Key & Private Key
 export function genPK (): Promise<{ data: { publicKey: string, privateKey: string } }> {
@@ -34,5 +35,65 @@ export function genBasic (): Promise<{ data: { username: string, password: strin
     url: '/generate/basic',
     method: 'post',
     data: {},
+  })
+}
+
+// Generate Access Token SNAP
+export function getSignAccessToken (formVerif : formVerif): Promise<{ data: responseSign }> {
+  return request({
+    url: '/generate/signature/access-token',
+    headers : {
+      'X-TIMESTAMP' : formVerif.timestamp,
+      'X-PARTNER-ID' : formVerif.partnerId,
+    },
+    method: 'post',
+    data: formVerif,
+  })
+}
+
+// Get Access Token Verify SNAP
+export function getAccessToken (formVerif : formVerif): Promise<{ data: responseAccessToken }> {
+  return request({
+    url: '/verify/snap/access-token',
+    headers : {
+      'X-TIMESTAMP' : formVerif.timestamp,
+      'X-PARTNER-ID' : formVerif.partnerId,
+      'X-CLIENT-KEY' : formVerif.clientKey,
+      'X-SIGNATURE' : formVerif.signature,
+    },
+    method: 'post',
+    data: formVerif.body,
+  })
+}
+
+// Generate Trx Siganture SNAP
+export function getSignTrx (formVerif : formVerif): Promise<{ data: responseSign }> {
+  return request({
+    url: '/generate/signature/transaction',
+    headers : {
+      'HTTP-METHOD' : formVerif.method,
+      'RELATIVE-URL' : formVerif.uri,
+      'Authorization' : formVerif.auth,
+      'X-TIMESTAMP' : formVerif.timestamp,
+      'X-PARTNER-ID' : formVerif.partnerId,
+    },
+    method: 'post',
+    data: formVerif.body,
+  })
+}
+
+// Get Trx Verify SNAP
+export function getTrx (formVerif : formVerif): Promise<{ data: responseTrx }> {
+  return request({
+    url: '/verify/snap/transaction',
+    headers : {
+      'HTTP-METHOD' : formVerif.method,
+      'RELATIVE-URL' : formVerif.uri,
+      'Authorization' : formVerif.auth,
+      'X-TIMESTAMP' : formVerif.timestamp,
+      'X-PARTNER-ID' : formVerif.partnerId,
+    },
+    method: 'post',
+    data: formVerif.body,
   })
 }
