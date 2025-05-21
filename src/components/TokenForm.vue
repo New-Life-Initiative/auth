@@ -5,7 +5,7 @@
         <v-col v-if="mode === 'SNAP'" cols="12" md="6">
           <v-text-field v-model="form.channelId" label="Channel Name" variant="outlined" />
         </v-col>
-        <v-col v-else cols="12">
+        <v-col v-else cols="6">
           <v-text-field v-model="form.channelId" label="Channel Name" variant="outlined" />
         </v-col>
 
@@ -16,6 +16,16 @@
             item-value="value"
             :items="tokenType"
             label="Token Type"
+            variant="outlined"
+          />
+        </v-col>
+        <v-col v-if="mode === 'BASIC'" cols="12" md="6">
+          <v-select
+            v-model="form.status"
+            item-title="text"
+            item-value="value"
+            :items="statusOptions"
+            label="Status"
             variant="outlined"
           />
         </v-col>

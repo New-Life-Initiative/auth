@@ -1,6 +1,6 @@
 import request from '@/api/request'
 import type { bodySnap } from '@/types/auth.types'
-import type { formVerif, responseAccessToken, responseSign, responseTrx } from '@/types/verif.types'
+import type { formVerif, responseAccessToken, responseAccessTokenBasic, responseSign, responseTrx } from '@/types/verif.types'
 
 // Generate Public Key & Private Key
 export function genPK (): Promise<{ data: { publicKey: string, privateKey: string } }> {
@@ -39,7 +39,7 @@ export function genBasic (): Promise<{ data: { username: string, password: strin
 }
 
 // Generate Access Token SNAP
-export function getSignAccessToken (formVerif : formVerif): Promise<{ data: responseSign }> {
+export function getSignAccessTokenSnap (formVerif : formVerif): Promise<{ data: responseSign }> {
   return request({
     url: '/generate/signature/access-token',
     headers : {
@@ -92,6 +92,31 @@ export function getTrx (formVerif : formVerif): Promise<{ data: responseTrx }> {
       'Authorization' : formVerif.auth,
       'X-TIMESTAMP' : formVerif.timestamp,
       'X-PARTNER-ID' : formVerif.partnerId,
+    },
+    method: 'post',
+    data: formVerif.body,
+  })
+}
+
+// Get Access Token BASIC
+export function getAccessTokenBasic (formVerif : formVerif): Promise<{ data: responseAccessTokenBasic }> {
+  return request({
+    url: '/verify/basic/access-token',
+    headers : {
+      'Username' : formVerif.username,
+      'Password' : formVerif.password,
+    },
+    method: 'post',
+    data: formVerif.body,
+  })
+}
+
+// Get Access Token BASIC
+export function getTrxBasic (formVerif : formVerif): Promise<{ data: responseTrx }> {
+  return request({
+    url: '/verify/basic/transaction',
+    headers : {
+      'Authorization' : formVerif.auth,
     },
     method: 'post',
     data: formVerif.body,

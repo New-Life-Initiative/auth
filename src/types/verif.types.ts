@@ -27,3 +27,8 @@ export interface responseAccessToken {
 export interface responseTrx {
   message : string
 }
+
+export interface responseAccessTokenBasic {
+  accessToken : string
+  refreshToken : string
+}

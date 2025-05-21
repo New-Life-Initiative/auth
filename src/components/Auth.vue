@@ -41,6 +41,7 @@
                 v-if="tabVerify === 'BASIC'"
                 :form="generateTokenForm"
                 mode="BASIC"
+                :status-options="statusOptions"
                 @generate-basic="onGenerateBasic"
                 @save="onSave"
               />

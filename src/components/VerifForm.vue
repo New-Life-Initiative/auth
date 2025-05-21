@@ -1,7 +1,7 @@
 <template>
   <v-form>
     <v-container>
-      <v-row v-if="mode === 'SNAP'">
+      <v-row>
         <v-col cols="12">
           <v-radio-group v-model="authMode" class="d-flex justify-space-between" inline>
             <v-radio label="Access Token" value="access" />
@@ -10,9 +10,9 @@
         </v-col>
       </v-row>
 
-      <p v-if="authMode === 'access' && mode === 'SNAP'" class="pb-4 pt-4">Header</p>
+      <p class="pb-4 pt-4">Header</p>
 
-      <!-- Access Token Headers -->
+      <!-- Access Token SNAP Headers -->
       <v-row v-if="authMode === 'access' && mode === 'SNAP'">
         <v-col cols="12">
           <v-text-field v-model="hitFormSnap.partnerId" label="X-PARTNER-ID" variant="outlined" />
@@ -51,8 +51,6 @@
           <v-text-field v-model="hitFormSnap.uri" label="Relative URL" placeholder="/v1/example" variant="outlined" />
         </v-col>
 
-        <p class="px-3">Header</p>
-
         <v-col cols="12">
           <v-text-field v-model="hitFormSnap.auth" label="Authorization" variant="outlined" />
         </v-col>
@@ -79,8 +77,8 @@
         </v-col>
       </v-row>
 
-      <!-- BASIC Auth -->
-      <v-row v-if="mode === 'BASIC'">
+      <!-- Acess Token BASIC Header -->
+      <v-row v-if="mode === 'BASIC' && authMode === 'access'">
         <v-col cols="12">
           <v-text-field v-model="hitFormSnap.username" label="Username" variant="outlined" />
         </v-col>
@@ -89,25 +87,32 @@
         </v-col>
       </v-row>
 
-      <p class="px-3">Body</p>
+      <v-row v-if="mode === 'BASIC' && authMode === 'trx'">
+        <v-col cols="12">
+          <v-text-field v-model="hitFormSnap.auth" label="Authorization" variant="outlined" />
+        </v-col>
+      </v-row>
+
+      <p class="pb-4 pt-4">Body</p>
       <v-textarea v-model="hitFormSnap.body" variant="outlined" />
 
       <v-row class="justify-center mb-5">
         <v-btn color="success" variant="flat" @click="sendRequest">Send</v-btn>
       </v-row>
 
-      <p class="px-3">Response</p>
+      <p class="pb-4 pt-4">Response</p>
       <v-textarea v-model="hitFormSnap.response" readonly variant="outlined" />
     </v-container>
   </v-form>
 </template>
 
 <script setup lang="ts">
-  import { defineProps, ref } from 'vue';
-  import { getAccessToken, getSignAccessToken, getSignTrx, getTrx } from '@/api/auth';
-  import type { formVerif } from '@/types/verif.types';
+  import { defineProps, ref } from 'vue'
+  import { getAccessToken, getAccessTokenBasic, getSignAccessTokenSnap, getSignTrx, getTrx,getTrxBasic } from '@/api/auth'
+  import type { formVerif } from '@/types/verif.types'
 
-  defineProps<{ mode: string }>();
+  const props = defineProps<{ mode: string }>()
+  const mode = props.mode
 
   const httpMethod = [
     { text: 'POST', value: 'POST' },
@@ -117,7 +122,7 @@
     { text: 'PUT', value: 'PUT' },
     { text: 'HEAD', value: 'HEAD' },
     { text: 'OPTIONS', value: 'OPTIONS' },
-  ];
+  ]
 
   const hitFormSnap = ref<formVerif>({
     partnerId: '',
@@ -133,33 +138,33 @@
     password: '',
     body: '',
     response: '',
-  });
+  })
 
-  const authMode = ref<'access' | 'trx'>('access');
+  const authMode = ref<'access' | 'trx'>('access')
 
   const getTimestamp = (): string => {
-    const date = new Date();
-    const offset = -date.getTimezoneOffset();
-    const sign = offset >= 0 ? '+' : '-';
-    const pad = (num: number) => String(num).padStart(2, '0');
-    const hours = Math.floor(Math.abs(offset) / 60);
-    const minutes = Math.abs(offset) % 60;
+    const date = new Date()
+    const offset = -date.getTimezoneOffset()
+    const sign = offset >= 0 ? '+' : '-'
+    const pad = (num: number) => String(num).padStart(2, '0')
+    const hours = Math.floor(Math.abs(offset) / 60)
+    const minutes = Math.abs(offset) % 60
 
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T` +
       `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}` +
-      `${sign}${pad(hours)}${pad(minutes)}`;
-  };
+      `${sign}${pad(hours)}${pad(minutes)}`
+  }
 
   const onGenerateTimestamp = () => {
-    hitFormSnap.value.timestamp = getTimestamp();
-  };
+    hitFormSnap.value.timestamp = getTimestamp()
+  }
 
   const generateSignatureAccess = () => {
-    console.log('Generate access token signature');
-    getSignAccessToken(hitFormSnap.value).then(({ data }) => {
-      hitFormSnap.value.signature = data.signatureKey;
-    }).catch(console.error);
-  };
+    console.log('Generate access token signature')
+    getSignAccessTokenSnap(hitFormSnap.value).then(({ data }) => {
+      hitFormSnap.value.signature = data.signatureKey
+    }).catch(console.error)
+  }
 
   const generateSignatureTrx = () => {
     console.log('Generate transaction signature')
@@ -173,9 +178,9 @@
     }
 
     getSignTrx(payload).then(({ data }) => {
-      hitFormSnap.value.signature = data.signatureKey;
-    }).catch(console.error);
-  };
+      hitFormSnap.value.signature = data.signatureKey
+    }).catch(console.error)
+  }
 
   const sendRequest = () => {
     console.log('Send request with payload:', hitFormSnap.value)
@@ -186,18 +191,25 @@
       body: parsedBody,
     }
 
-    if (authMode.value === 'access') {
+    if (authMode.value === 'access' && mode === 'SNAP') {
       getAccessToken(payload).then(({ data }) => {
-        hitFormSnap.value.response = JSON.stringify(data, null, 2);
+        hitFormSnap.value.response = JSON.stringify(data, null, 2)
       }).catch(console.error)
-    } else {
+    } else if (authMode.value === 'access' && mode === 'BASIC') {
+      getAccessTokenBasic(payload).then(({ data }) => {
+        hitFormSnap.value.response = JSON.stringify(data, null, 2)
+      }).catch(console.error)
+    } else if (authMode.value === 'trx' && mode === 'SNAP') {
       getTrx(payload).then(({ data }) => {
         hitFormSnap.value.response = data.message
       }).catch(console.error)
+    } else if (authMode.value === 'trx' && mode === 'BASIC') {
+      getTrxBasic(payload).then(({ data }) => {
+        hitFormSnap.value.response = data.message
+      }).catch(console.error)
     }
+  }
 
-
-  };
 </script>
 
 <style scoped>
