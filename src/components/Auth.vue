@@ -123,7 +123,7 @@
   }
 
   function onGenerateCKSK () {
-    genCKSK().then(({ data }) => {
+    genCKSK(generateTokenForm.value).then(({ data }) => {
       generateTokenForm.value.clientKey = data.clientKey;
       generateTokenForm.value.clientSecret = data.clientSecret;
     }).catch(console.error);

@@ -5,25 +5,25 @@ import type { formVerif, responseAccessToken, responseAccessTokenBasic, response
 // Generate Public Key & Private Key
 export function genPK (): Promise<{ data: { publicKey: string, privateKey: string } }> {
   return request({
-    url: '/generate/snap-rsa',
+    url: '/v1/auth/generate/snap-rsa',
     method: 'post',
     data: {},
   })
 }
 
 // Generate Client Key & Client Secret Key
-export function genCKSK (): Promise<{ data: { clientKey: string, clientSecret: string } }> {
+export function genCKSK (bodySnap: bodySnap): Promise<{ data: { clientKey: string, clientSecret: string } }> {
   return request({
-    url: '/generate/snap-client',
+    url: '/v1/auth/generate/snap-client',
     method: 'post',
-    data: {},
+    data: bodySnap,
   })
 }
 
 // Save SNAP Configuration
 export function save (bodySnap: bodySnap): Promise<{ data: { success: boolean, message: string } }> {
   return request({
-    url: '/generate/save',
+    url: '/v1/auth/generate/save',
     method: 'post',
     data: bodySnap,
   })
@@ -32,7 +32,7 @@ export function save (bodySnap: bodySnap): Promise<{ data: { success: boolean, m
 // Generate Client Key & Client Secret Key
 export function genBasic (): Promise<{ data: { username: string, password: string } }> {
   return request({
-    url: '/generate/basic',
+    url: '/v1/auth/generate/basic',
     method: 'post',
     data: {},
   })
@@ -41,10 +41,10 @@ export function genBasic (): Promise<{ data: { username: string, password: strin
 // Generate Access Token SNAP
 export function getSignAccessTokenSnap (formVerif : formVerif): Promise<{ data: responseSign }> {
   return request({
-    url: '/generate/signature/access-token',
+    url: '/v1/auth/generate/signature/access-token',
     headers : {
       'X-TIMESTAMP' : formVerif.timestamp,
-      'X-PARTNER-ID' : formVerif.partnerId,
+      'X-CLIENT-KEY' : formVerif.clientKey,
     },
     method: 'post',
     data: formVerif,
@@ -54,7 +54,7 @@ export function getSignAccessTokenSnap (formVerif : formVerif): Promise<{ data: 
 // Get Access Token Verify SNAP
 export function getAccessToken (formVerif : formVerif): Promise<{ data: responseAccessToken }> {
   return request({
-    url: '/verify/snap/access-token',
+    url: '/v1/auth/verify/snap/access-token',
     headers : {
       'X-TIMESTAMP' : formVerif.timestamp,
       'X-PARTNER-ID' : formVerif.partnerId,
@@ -69,7 +69,7 @@ export function getAccessToken (formVerif : formVerif): Promise<{ data: response
 // Generate Trx Siganture SNAP
 export function getSignTrx (formVerif : formVerif): Promise<{ data: responseSign }> {
   return request({
-    url: '/generate/signature/transaction',
+    url: '/v1/auth/generate/signature/transaction',
     headers : {
       'HTTP-METHOD' : formVerif.method,
       'RELATIVE-URL' : formVerif.uri,
@@ -85,7 +85,7 @@ export function getSignTrx (formVerif : formVerif): Promise<{ data: responseSign
 // Get Trx Verify SNAP
 export function getTrx (formVerif : formVerif): Promise<{ data: responseTrx }> {
   return request({
-    url: '/verify/snap/transaction',
+    url: '/v1/auth/verify/snap/transaction',
     headers : {
       'HTTP-METHOD' : formVerif.method,
       'RELATIVE-URL' : formVerif.uri,
@@ -101,7 +101,7 @@ export function getTrx (formVerif : formVerif): Promise<{ data: responseTrx }> {
 // Get Access Token BASIC
 export function getAccessTokenBasic (formVerif : formVerif): Promise<{ data: responseAccessTokenBasic }> {
   return request({
-    url: '/verify/basic/access-token',
+    url: '/v1/auth/verify/basic/access-token',
     headers : {
       'Username' : formVerif.username,
       'Password' : formVerif.password,
@@ -114,11 +114,43 @@ export function getAccessTokenBasic (formVerif : formVerif): Promise<{ data: res
 // Get Access Token BASIC
 export function getTrxBasic (formVerif : formVerif): Promise<{ data: responseTrx }> {
   return request({
-    url: '/verify/basic/transaction',
+    url: '/v1/auth/verify/basic/transaction',
     headers : {
       'Authorization' : formVerif.auth,
     },
     method: 'post',
     data: formVerif.body,
+  })
+}
+
+export function getSignatureAccessSnap (form : Record<string, unknown>): Promise<{ data: responseSign }> {
+  return request({
+    url: '/v2/auth/generate/signature-access-token',
+    method: 'post',
+    data: form,
+  })
+}
+
+export function getSignatureTrxSnap (form : Record<string, unknown>): Promise<{ data: responseSign }> {
+  return request({
+    url: '/v2/auth/generate/signature-transaction',
+    method: 'post',
+    data: form,
+  })
+}
+
+export function verifSignatureAccessSnap (form : Record<string, unknown>): Promise<{ data: string }> {
+  return request({
+    url: '/v2/auth/verify/signature-access-token',
+    method: 'post',
+    data: form,
+  })
+}
+
+export function verifSignatureTrxSnap (form : Record<string, unknown>): Promise<{ data: string }> {
+  return request({
+    url: '/v2/auth/verify/signature-transaction',
+    method: 'post',
+    data: form,
   })
 }
